@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="appGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#4338ca" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+    <filter id="appShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#1e1b4b" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- App Rounded Icon Base -->
+  <rect width="512" height="512" rx="112" fill="url(#appGrad)" />
+
+  <!-- Inner Badge Frame -->
+  <g filter="url(#appShadow)" transform="translate(56, 56)">
+    <!-- Graduation Cap / Scholar Icon -->
+    <path d="M200 40 L370 125 L200 210 L30 125 Z" fill="#ffffff" />
+    <path d="M80 150 L80 250 C80 310, 320 310, 320 250 L320 150 L200 210 Z" fill="#e0e7ff" />
+    <path d="M370 125 L370 230 C370 240, 355 240, 355 230 L355 132.5 Z" fill="#c7d2fe" />
+    
+    <!-- Checklist Badge -->
+    <g transform="translate(190, 200)">
+      <circle cx="90" cy="90" r="70" fill="#10b981" />
+      <path d="M60 90 L82 112 L122 68" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

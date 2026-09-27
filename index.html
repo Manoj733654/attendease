@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendEase – Attendance & Notice Management System</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <meta name="theme-color" content="#4f46e5">
+  <!-- SheetJS for Excel (.xlsx / .xls) spreadsheet parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- ==========================================
+       VIEW 1: ADMIN LOGIN (SHOWN WHEN LOGGED OUT)
+       ========================================== -->
+  <div class="auth-view" id="viewAdminLogin">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-icon auth-crest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        </div>
+        <h2 class="auth-title">AttendEase</h2>
+        <p class="auth-sub">Administrator Portal Login</p>
+      </div>
+
+      <form id="formAdminLogin" class="auth-form" novalidate>
+        <div class="auth-error-box hidden" id="loginErrorBox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span id="loginErrorText">Invalid admin credentials.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="txtAdminUsername">Admin Username</label>
+          <input type="text" id="txtAdminUsername" class="form-control" placeholder="Enter admin username" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="txtAdminPassword">Admin Password</label>
+          <input type="password" id="txtAdminPassword" class="form-control" placeholder="Enter admin password" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-auth-submit" id="btnAdminSignIn">
+          <span>Sign In as Admin &rarr;</span>
+        </button>
+
+        <div style="margin-top: 1.15rem; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 0.95rem;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnLoginShowQr" style="width: 100%; border-color: #cbd5e1; color: #475569;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>📱 Scan QR Code to Open on Mobile</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       VIEW 2: MAIN APP CONTAINER (AUTHENTICATED)
+       ========================================== -->
+  <div class="app-layout hidden" id="viewApp">
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="brand-group">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="brand-title">AttendEase</h1>
+            <p class="brand-subtitle">Attendance &amp; Notice Management System</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs" aria-label="Main Navigation">
+          <button type="button" class="nav-tab active" data-tab="dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button type="button" class="nav-tab" data-tab="attendance">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m9 11 3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            <span>Attendance Register</span>
+          </button>
+          <button type="button" class="nav-tab" data-tab="notices">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Notice Generator</span>
+            <span class="badge-count hidden" id="navNoticeCount">0</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="header-actions">
+          <div class="admin-user-badge" id="adminUserBadge" title="Logged in as Primary Administrator">
+            <span class="admin-dot"></span>
+            <span>Admin</span>
+          </div>
+
+          <button type="button" class="btn btn-secondary btn-sm" id="btnExportBackup" title="Export all students and notice template as JSON">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Export Backup</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-sm" id="btnImportBackup" title="Import data from JSON backup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Import</span>
+          </button>
+          <input type="file" id="fileImportBackup" accept=".json" style="display: none;">
+
+          <button type="button" class="btn btn-outline btn-sm text-danger" id="btnClearAllData" title="Clear all students from storage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            <span>Clear All Data</span>
+          </button>
+
+          <button type="button" class="btn btn-outline btn-sm" id="btnLoadDemoData" title="Load sample students (Manoj, Rahul, etc.)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span>Demo Data</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-sm" id="btnChangeAdminCreds" title="Change Admin Username &amp; Password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Change Password</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-sm" id="btnShowQrCode" title="Scan QR Code to open on mobile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>QR Code</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-sm btn-logout" id="btnAdminLogout" title="Logout from Admin Portal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="app-main">
+
+      <!-- ==========================================
+           TAB 1: DASHBOARD
+           ========================================== -->
+      <section class="tab-content active" id="tabDashboard">
+        
+        <!-- 4 Summary KPI Cards -->
+        <div class="kpi-grid">
+          <!-- Card 1: Total Students -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Total Students</span>
+              <span class="kpi-value" id="kpiTotalStudents">0</span>
+              <span class="kpi-hint">Enrolled in register</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Total Classes -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Total Classes</span>
+              <span class="kpi-value" id="kpiTotalClasses">0</span>
+              <span class="kpi-hint">Classes conducted</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Average Attendance -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Average Attendance</span>
+              <span class="kpi-value" id="kpiAvgAttendance">0%</span>
+              <span class="kpi-hint" id="kpiAvgHint">Overall class average</span>
+            </div>
+          </div>
+
+          <!-- Card 4: Students Below 75% -->
+          <div class="kpi-card kpi-card-alert" id="cardBelow75">
+            <div class="kpi-icon-wrap icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-label">Students Below 75%</span>
+              <span class="kpi-value text-danger" id="kpiBelow75">0</span>
+              <span class="kpi-hint text-danger-hint">Notice required</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Attendance Overview -->
+        <div class="content-card">
+          <div class="card-header-bar">
+            <div>
+              <h2 class="card-section-title">Attendance Overview</h2>
+              <p class="card-section-sub">Student records, attendance percentages, and shortage status</p>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="table-top-actions">
+              <!-- Filter & Quick Select -->
+              <button type="button" class="btn btn-warning" id="btnSelectBelow75" title="Select all students with attendance below 75%">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>Select Below 75%</span>
+                <span class="badge-pill pill-warning" id="badgeBelow75Count">0</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary" id="btnClearSelection" title="Clear selection">
+                <span>Clear Selection</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary" id="btnOpenExcelModal" title="Import students from Excel (.xlsx/.xls) or CSV sheet">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="8" y1="13" x2="16" y2="13"/>
+                  <line x1="8" y1="17" x2="16" y2="17"/>
+                </svg>
+                <span>Import Excel / CSV</span>
+              </button>
+
+              <button type="button" class="btn btn-primary" id="btnOpenAddStudent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span>Add Student</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Search and Filter Bar -->
+          <div class="table-filter-bar">
+            <div class="search-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="txtSearchStudent" placeholder="Search by Roll No, Student Name, or Parent Name..." autocomplete="off">
+              <button type="button" id="btnClearSearch" class="btn-clear-search hidden" title="Clear search">&times;</button>
+            </div>
+
+            <!-- Quick Filter Status -->
+            <div class="status-filter-group">
+              <button type="button" class="filter-chip active" data-filter="all">All Students</button>
+              <button type="button" class="filter-chip chip-below" data-filter="below">Below 75%</button>
+              <button type="button" class="filter-chip chip-good" data-filter="good">Good (75%+)</button>
+            </div>
+          </div>
+
+          <!-- Selection Floating Bar (shows when students are selected) -->
+          <div class="selection-floating-bar hidden" id="selectionToolbar">
+            <div class="selection-info">
+              <span class="selection-count-badge" id="lblSelectionCount">0 selected</span>
+              <span class="selection-text">students selected for action</span>
+            </div>
+            <div class="selection-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btnGenerateForSelected">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Generate Notices for Selected</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnBatchSetClasses">
+                <span>Set Total Classes</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Student Table Container -->
+          <div class="table-responsive">
+            <table class="data-table" id="tableStudents">
+              <thead>
+                <tr>
+                  <th style="width: 44px; text-align: center;">
+                    <input type="checkbox" id="chkSelectAll" title="Select all visible students">
+                  </th>
+                  <th style="width: 110px;">Roll No.</th>
+                  <th>Student Name</th>
+                  <th>Parent Info</th>
+                  <th style="width: 110px; text-align: center;">Total Classes</th>
+                  <th style="width: 120px; text-align: center;">Attended</th>
+                  <th style="width: 140px; text-align: center;">Attendance %</th>
+                  <th style="width: 140px; text-align: center;">Status</th>
+                  <th style="width: 150px; text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyStudents">
+                <!-- Rendered by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State (When no students exist) -->
+          <div class="empty-state hidden" id="emptyState">
+            <div class="empty-state-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="19" y2="14"/>
+                <line x1="22" y1="11" x2="16" y2="11"/>
+              </svg>
+            </div>
+            <h3 class="empty-state-title">No students added yet.</h3>
+            <p class="empty-state-desc">Get started by adding your first student record or load the sample demo class.</p>
+            <div class="empty-state-actions">
+              <button type="button" class="btn btn-primary" id="btnEmptyAddStudent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span>+ Add Student</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnEmptyExcelImport">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="8" y1="13" x2="16" y2="13"/>
+                  <line x1="8" y1="17" x2="16" y2="17"/>
+                </svg>
+                <span>Import Excel / CSV</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnEmptyLoadDemo">
+                <span>Load Demo Data</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Footer Stats -->
+          <div class="table-footer-bar">
+            <span id="lblTableRecordCount">Showing 0 students</span>
+            <span class="security-privacy-note">
+              🔒 Your data is stored locally in this browser. This version is intended for local use.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 2: ATTENDANCE REGISTER
+           ========================================== -->
+      <section class="tab-content" id="tabAttendance">
+        <div class="content-card">
+          <div class="card-header-bar">
+            <div>
+              <h2 class="card-section-title">Attendance Register &amp; Quick Updater</h2>
+              <p class="card-section-sub">Quickly update classes conducted and attended for all students</p>
+            </div>
+            <div class="table-top-actions">
+              <button type="button" class="btn btn-secondary" id="btnQuickIncrementAllTotal" title="Increment Total Classes by +1 for all students">
+                <span>+1 Class Conducted (All)</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnOpenCommonTotalModal">
+                <span>Set Common Total Classes</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="info-alert-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div>
+              <strong>Quick Entry Mode:</strong> You can increment or decrement attended classes directly using the <strong>+</strong> and <strong>&minus;</strong> buttons below. The attendance percentage and 75% shortage status will recalculate instantly!
+            </div>
+          </div>
+
+          <!-- Register Table -->
+          <div class="table-responsive">
+            <table class="data-table" id="tableRegister">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">Roll No.</th>
+                  <th>Student Name</th>
+                  <th style="width: 140px; text-align: center;">Total Classes</th>
+                  <th style="width: 180px; text-align: center;">Attended Classes</th>
+                  <th style="width: 150px; text-align: center;">Attendance %</th>
+                  <th style="width: 150px; text-align: center;">Status</th>
+                  <th style="width: 100px; text-align: center;">Shortage?</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyRegister">
+                <!-- Rendered by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 3: NOTICE GENERATOR
+           ========================================== -->
+      <section class="tab-content" id="tabNotices">
+        <div class="notice-generator-grid">
+          
+          <!-- Column 1: Notice Configuration & Template Editor -->
+          <div class="content-card">
+            <div class="card-header-bar">
+              <div>
+                <h2 class="card-section-title">Notice Generator</h2>
+                <p class="card-section-sub">Customize the notice template and select recipients</p>
+              </div>
+            </div>
+
+            <!-- Target Student Selector -->
+            <div class="form-group">
+              <label class="form-label" for="selectNoticeStudent">
+                Select Student to Preview / Send <span class="required-star">*</span>
+              </label>
+              <div class="student-select-row">
+                <select id="selectNoticeStudent" class="form-control">
+                  <option value="">-- Choose a student --</option>
+                </select>
+                <button type="button" class="btn btn-warning btn-sm" id="btnNoticePickBelow75" title="Switch between students below 75%">
+                  <span>Below 75% Only</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Placeholders explanation chips -->
+            <div class="placeholders-panel">
+              <span class="placeholders-title">Click to insert dynamic placeholder:</span>
+              <div class="placeholder-chips">
+                <button type="button" class="chip-tag" data-tag="{{name}}" title="Student's Full Name">{{name}}</button>
+                <button type="button" class="chip-tag" data-tag="{{roll}}" title="Student's Roll Number">{{roll}}</button>
+                <button type="button" class="chip-tag" data-tag="{{attended}}" title="Classes Attended">{{attended}}</button>
+                <button type="button" class="chip-tag" data-tag="{{total}}" title="Total Classes Conducted">{{total}}</button>
+                <button type="button" class="chip-tag" data-tag="{{percentage}}" title="Current Attendance Percentage">{{percentage}}</button>
+              </div>
+            </div>
+
+            <!-- Custom Notice Template Textarea -->
+            <div class="form-group">
+              <div class="label-with-action">
+                <label class="form-label" for="txtNoticeTemplate">
+                  Notice Message Template <span class="required-star">*</span>
+                </label>
+                <button type="button" class="btn-text" id="btnResetTemplate">Reset to Default</button>
+              </div>
+              <textarea id="txtNoticeTemplate" class="form-control template-textarea" rows="9" placeholder="Type your custom notice template here..."></textarea>
+            </div>
+
+            <div class="template-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnSaveTemplate">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span>Save Template</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btnRegeneratePreview">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <polyline points="1 4 1 10 7 10"/>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                </svg>
+                <span>Update Preview</span>
+              </button>
+            </div>
+
+            <!-- Optional Coordinator Details -->
+            <div class="coordinator-settings">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="txtCollegeName">College / Institute Name</label>
+                  <input type="text" id="txtCollegeName" class="form-control" value="Department of Computer Science & Engineering">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="txtSignatory">Signatory Title</label>
+                  <input type="text" id="txtSignatory" class="form-control" value="Class Coordinator / HOD">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column 2: Live Notice Preview & Dispatch Options -->
+          <div class="content-card preview-card">
+            <div class="card-header-bar">
+              <div>
+                <h2 class="card-section-title">Notice Preview</h2>
+                <p class="card-section-sub">Official academic notice preview ready for print or WhatsApp</p>
+              </div>
+
+              <!-- Student Switcher (when multiple selected) -->
+              <div class="preview-pager hidden" id="previewPager">
+                <button type="button" class="btn-icon" id="btnPrevNotice" title="Previous student">&larr;</button>
+                <span id="lblPagerText">1 of 1</span>
+                <button type="button" class="btn-icon" id="btnNextNotice" title="Next student">&rarr;</button>
+              </div>
+            </div>
+
+            <!-- Official Letterhead Preview Document (Prints cleanly!) -->
+            <div class="notice-letterhead" id="noticePrintableArea">
+              <!-- Academic Crest Header -->
+              <div class="notice-header">
+                <div class="notice-crest">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
+                </div>
+                <div class="notice-institute">
+                  <h3 id="prevInstituteName">Department of Computer Science &amp; Engineering</h3>
+                  <div class="notice-title-banner">OFFICIAL ATTENDANCE NOTICE</div>
+                </div>
+              </div>
+
+              <!-- Ref and Date Meta -->
+              <div class="notice-meta-bar">
+                <span><strong>Ref No:</strong> <span id="prevRefNo">ATTN-2026/086</span></span>
+                <span><strong>Date:</strong> <span id="prevNoticeDate">26 Sep 2026</span></span>
+              </div>
+
+              <!-- Student Particulars Box -->
+              <div class="notice-student-box">
+                <table class="notice-details-table">
+                  <tr>
+                    <td class="lbl">Student Name:</td>
+                    <td class="val"><strong id="prevStudentName">Select a student</strong></td>
+                    <td class="lbl">Roll Number:</td>
+                    <td class="val"><strong id="prevRollNo">—</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="lbl">Parent / Guardian:</td>
+                    <td class="val" id="prevParentName">—</td>
+                    <td class="lbl">Parent WhatsApp:</td>
+                    <td class="val"><strong id="prevWhatsApp" style="color: #059669;">—</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="lbl">Student Mobile:</td>
+                    <td class="val" id="prevStudentMobile">—</td>
+                    <td class="lbl">Attendance Status:</td>
+                    <td class="val">
+                      <span class="status-indicator-tag" id="prevStatusTag">Pending</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="lbl">Total Classes:</td>
+                    <td class="val" id="prevTotalClasses">—</td>
+                    <td class="lbl">Classes Attended:</td>
+                    <td class="val" id="prevAttendedClasses">—</td>
+                  </tr>
+                  <tr>
+                    <td class="lbl">Attendance %:</td>
+                    <td class="val" colspan="3">
+                      <span class="badge-status-lg" id="prevPercentageBadge">0%</span>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Rendered Personalized Message -->
+              <div class="notice-message-body" id="prevMessageContent">
+                Select a student to generate and preview the personalized notice.
+              </div>
+
+              <!-- Official Sign-off -->
+              <div class="notice-signoff-block">
+                <div class="signature-line"></div>
+                <div class="signatory-name" id="prevSignatoryTitle">Class Coordinator / HOD</div>
+                <div class="signatory-dept" id="prevSignatoryDept">Department of Computer Science</div>
+              </div>
+            </div>
+
+            <!-- Dispatch Action Buttons -->
+            <div class="preview-actions-bar">
+              <button type="button" class="btn btn-primary" id="btnPrintNotice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <polyline points="6 9 6 2 18 2 18 9"/>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                  <rect x="6" y="14" width="12" height="8"/>
+                </svg>
+                <span>Print / Save PDF</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary hidden" id="btnPrintAllSelected" title="Print individual notices for all selected students">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <polyline points="6 9 6 2 18 2 18 9"/>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                  <rect x="6" y="14" width="12" height="8"/>
+                </svg>
+                <span id="lblPrintAllCount">Print All Selected (0)</span>
+              </button>
+
+              <button type="button" class="btn btn-whatsapp" id="btnSendWhatsApp" title="Send personalized message to Parent WhatsApp">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                  <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.33C9.33 7.33 9 7.4 8.74 7.69C8.47 7.97 7.74 8.66 7.74 10.08C7.74 11.5 8.77 12.87 8.92 13.06C9.06 13.26 11.1 16.41 14.22 17.76C14.96 18.08 15.54 18.27 16 18.41C16.74 18.65 17.42 18.61 17.95 18.53C18.54 18.45 19.77 17.79 20.03 17.06C20.28 16.33 20.28 15.71 20.21 15.58C20.13 15.45 19.93 15.38 19.63 15.23C19.33 15.08 17.86 14.36 17.58 14.26C17.31 14.16 17.11 14.11 16.92 14.41C16.72 14.7 16.15 15.38 15.98 15.58C15.8 15.77 15.63 15.8 15.33 15.65C15.04 15.5 14.09 15.19 12.96 14.18C12.09 13.4 11.5 12.44 11.33 12.15C11.16 11.85 11.31 11.7 11.46 11.55C11.59 11.42 11.76 11.2 11.91 11.03C12.05 10.86 12.1 10.74 12.2 10.54C12.3 10.35 12.25 10.18 12.18 10.03C12.1 9.89 11.52 8.46 11.28 7.87C11.04 7.3 10.8 7.38 10.62 7.37C10.45 7.36 10.25 7.33 10.05 7.33H9.53Z"/>
+                </svg>
+                <span id="lblSendWhatsAppText">Send to Parent WhatsApp</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary" id="btnSendStudentWhatsApp" title="Send personalized message to Student Mobile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                </svg>
+                <span id="lblSendStudentText">Send to Student</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary" id="btnCopyNoticeText" title="Copy personalized message text to clipboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span>Copy Text</span>
+              </button>
+            </div>
+
+            <!-- WhatsApp Disclosure Note -->
+            <div class="whatsapp-note-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <span><strong>Note:</strong> WhatsApp requires the teacher to press Send. This opens WhatsApp with the personalized message pre-filled.</span>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: ADD / EDIT STUDENT
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalStudent">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="lblModalStudentTitle">Add Student</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseModalStudent">&times;</button>
+      </div>
+
+      <form id="formStudent" novalidate>
+        <input type="hidden" id="txtStudentId">
+
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="txtRollNumber">
+                Roll Number <span class="required-star">*</span>
+              </label>
+              <input type="text" id="txtRollNumber" class="form-control" placeholder="e.g. 85" required autocomplete="off">
+              <span class="field-hint">Unique student identifier</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="txtStudentName">
+                Student Name <span class="required-star">*</span>
+              </label>
+              <input type="text" id="txtStudentName" class="form-control" placeholder="e.g. Manoj Choudhary" required autocomplete="off">
+              <span class="field-hint">Full name of student</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="txtParentName">
+                Parent / Guardian Name
+              </label>
+              <input type="text" id="txtParentName" class="form-control" placeholder="e.g. Suresh Choudhary" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="txtParentWhatsApp">
+                Parent WhatsApp Number
+              </label>
+              <input type="tel" id="txtParentWhatsApp" class="form-control" placeholder="e.g. 9876543210 or +919876543210" autocomplete="off">
+              <span class="field-hint">Accepts 10-digit Indian numbers</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="txtTotalClasses">
+                Total Classes <span class="required-star">*</span>
+              </label>
+              <input type="number" id="txtTotalClasses" class="form-control" min="0" value="50" required>
+              <span class="field-hint">Conducted classes (&ge; 0)</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="txtAttendedClasses">
+                Classes Attended <span class="required-star">*</span>
+              </label>
+              <input type="number" id="txtAttendedClasses" class="form-control" min="0" value="45" required>
+              <span class="field-hint">Must be &le; Total Classes</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="txtStudentMobile">
+              Student Mobile Number <span class="optional-tag">(Optional)</span>
+            </label>
+            <input type="tel" id="txtStudentMobile" class="form-control" placeholder="e.g. 9876543211" autocomplete="off">
+          </div>
+
+          <!-- Live Attendance Calculation Preview in Modal -->
+          <div class="live-calc-box">
+            <div class="live-calc-left">
+              <span class="calc-label">Calculated Attendance:</span>
+              <span class="calc-value" id="lblLiveCalcPercentage">90.00%</span>
+            </div>
+            <div class="live-calc-right">
+              <span class="badge-status" id="badgeLiveCalcStatus">Good (75%+)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelStudent">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveStudent">
+            <span>Save Student</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: DELETE CONFIRMATION
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalDelete">
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Student</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseModalDelete">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="delete-confirm-text">
+          Are you sure you want to delete this student?
+        </p>
+        <div class="delete-student-details" id="deleteStudentInfo">
+          <!-- Student name & roll -->
+        </div>
+        <p class="delete-warning-sub">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelDelete">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDelete">Delete Student</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: BATCH SET TOTAL CLASSES
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalBatchClasses">
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Set Common Total Classes</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseModalBatchClasses">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Update the <strong>Total Classes Conducted</strong> for all or selected students:
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="txtBatchTotalValue">New Total Classes</label>
+          <input type="number" id="txtBatchTotalValue" class="form-control" min="0" value="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apply To:</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="batchScope" value="all" checked> All Students
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="batchScope" value="selected"> Selected Students Only (<span id="lblBatchSelectedCount">0</span>)
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelBatchClasses">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btnApplyBatchClasses">Apply Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 4: EXCEL / CSV SHEET IMPORT
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalExcelImport">
+    <div class="modal-dialog modal-dialog-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-badge-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="16" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Import Students via Excel / CSV</h3>
+            <p class="modal-subtitle">Upload .xlsx, .xls, or .csv spreadsheet with student details and attendance</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseModalExcel">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Guidelines & Sample Download -->
+        <div class="excel-instructions-box">
+          <div class="excel-guidelines-text">
+            <strong>Supported Columns:</strong>
+            <code>Roll Number</code>, <code>Student Name</code>, <code>Student Mobile (Optional)</code>, <code>Parent Name (Optional)</code>, <code>Parent WhatsApp (Optional)</code>, <code>Total Classes</code>, <code>Classes Attended</code>.
+            <div style="margin-top: 5px; font-size: 0.77rem; color: #475569;">
+              ✅ <strong>No mobile numbers? No problem!</strong> You can upload sheets with or without student/parent mobile numbers. The system will calculate attendance and generate notices perfectly!
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadSampleExcel" title="Download ready-to-use CSV template">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Download Sample CSV Template</span>
+          </button>
+        </div>
+
+        <!-- File Upload Drag & Drop Area -->
+        <div class="excel-dropzone" id="excelDropzone">
+          <input type="file" id="fileExcelInput" accept=".xlsx, .xls, .csv, text/csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="excel-file-input">
+          <div class="dropzone-content">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="36" height="36">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p class="dropzone-primary-text">Drag &amp; drop your Excel (.xlsx, .xls) or CSV sheet here</p>
+            <p class="dropzone-sub-text">or <span class="dropzone-link">browse files on your device</span></p>
+            <div class="dropzone-chips">
+              <span class="file-chip">.xlsx</span>
+              <span class="file-chip">.xls</span>
+              <span class="file-chip">.csv</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Loaded Feedback Banner -->
+        <div class="excel-file-loaded hidden" id="excelFileLoaded">
+          <div class="file-info-col">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" class="text-green">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span class="file-loaded-name" id="lblExcelFileName">file.xlsx</span>
+            <span class="file-loaded-count" id="lblExcelParsedCount">(0 students ready)</span>
+          </div>
+          <button type="button" class="btn-text-danger" id="btnClearExcelFile">Change File</button>
+        </div>
+
+        <!-- Parsed Data Preview Area -->
+        <div class="excel-preview-area hidden" id="excelPreviewArea">
+          <div class="preview-header-bar">
+            <h4 class="preview-title">Pre-Import Data Preview</h4>
+            <div class="import-mode-radios">
+              <label class="radio-label">
+                <input type="radio" name="excelImportMode" value="append" checked>
+                <span>Append to Existing</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="excelImportMode" value="replace">
+                <span>Replace All Records</span>
+              </label>
+              <label class="checkbox-label" style="display:flex; align-items:center; gap:0.4rem; font-size:0.82rem; color:#475569; margin-left:0.5rem;" title="If checked, does not store any student or parent mobile numbers">
+                <input type="checkbox" id="chkIgnoreMobileNumbers">
+                <span>Do not store mobile numbers</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="excel-preview-wrap">
+            <table class="data-table preview-table" id="tableExcelPreview">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">Roll No</th>
+                  <th>Student Name</th>
+                  <th>Student Mobile</th>
+                  <th>Parent Name</th>
+                  <th>Parent WhatsApp</th>
+                  <th style="width: 70px; text-align: center;">Total</th>
+                  <th style="width: 70px; text-align: center;">Attended</th>
+                  <th style="width: 90px; text-align: center;">%</th>
+                  <th style="width: 100px; text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyExcelPreview">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelExcelImport">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmExcelImport" disabled>
+          <span>Confirm &amp; Import Students</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 5: CLEAR ALL DATA CONFIRMATION
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalClearAll">
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge icon-badge-red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Clear All Student Data</h3>
+            <p class="modal-subtitle">Reset attendance database</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseModalClearAll">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="danger-alert-box">
+          <p>
+            <strong>Warning:</strong> You are about to permanently delete all student attendance records (<span id="lblClearStudentCount">0</span> records).
+          </p>
+          <p class="danger-sub-text">
+            This action wipes all names, roll numbers, attendance statistics, and notice statuses from your browser's storage. It cannot be undone!
+          </p>
+        </div>
+
+        <p class="export-reminder-note">
+          💡 <em>Tip: You can click "Export Backup" on the top header first to save a JSON copy before clearing.</em>
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelClearAll">Keep Data</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmClearAll">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          <span>Yes, Clear All Data</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 6: CHANGE ADMIN USERNAME & PASSWORD
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalAdminCreds">
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge" style="background:#e0e7ff; color:#4338ca; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title" id="lblModalCredsTitle">Admin Security Credentials</h3>
+            <p class="modal-subtitle" id="lblModalCredsSub">Change your administrator username and password</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseModalCreds">&times;</button>
+      </div>
+
+      <form id="formAdminCreds" novalidate>
+        <div class="modal-body">
+          <div id="boxFirstTimeNotice" class="hidden" style="margin-bottom:1.1rem; padding:0.85rem 1rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; color:#1e40af; font-size:0.875rem; line-height:1.45;">
+            <strong>🔒 First-Time Login Notice:</strong> Please set a new personalized admin username and password before accessing the system.
+          </div>
+
+          <div class="auth-error-box hidden" id="credsErrorBox" style="margin-bottom:1rem; padding:0.65rem 0.85rem; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; color:#991b1b; font-size:0.82rem; display:flex; align-items:center; gap:0.5rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span id="credsErrorText">Please fill in all fields.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label class="form-label" for="txtNewAdminUsername">Admin Username <span class="required-star">*</span></label>
+            <input type="text" id="txtNewAdminUsername" class="form-control" placeholder="Enter admin username (min. 3 characters)" required autocomplete="username">
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label class="form-label" for="txtNewAdminPassword">New Password <span class="required-star">*</span></label>
+            <input type="password" id="txtNewAdminPassword" class="form-control" placeholder="Enter new password (min. 4 characters)" required autocomplete="new-password">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="txtConfirmAdminPassword">Confirm New Password <span class="required-star">*</span></label>
+            <input type="password" id="txtConfirmAdminPassword" class="form-control" placeholder="Re-enter new password" required autocomplete="new-password">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelCreds">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveAdminCreds">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span>Save &amp; Update Credentials</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 7: QR CODE TO OPEN ON MOBILE
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="modalQrCode">
+    <div class="modal-dialog modal-dialog-sm" style="text-align: center;">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="text-align: left;">
+          <div class="modal-icon-badge" style="background:#e0e7ff; color:#4338ca; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Mobile Access QR Code</h3>
+            <p class="modal-subtitle">Scan with phone camera or WhatsApp</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseModalQr">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+        <div style="background: #ffffff; padding: 0.85rem; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; display: inline-block;">
+          <img id="imgQrCode" src="" alt="AttendEase Mobile QR Code" style="width: 220px; height: 220px; display: block; border-radius: 6px; object-fit: contain;" />
+        </div>
+
+        <p style="font-size: 0.88rem; color: #475569; margin: 0; max-width: 320px; line-height: 1.45;">
+          Point your mobile phone camera (or Google Lens / QR Scanner) at the code to open AttendEase instantly!
+        </p>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem; width: 100%; max-width: 380px; margin-top: 0.25rem;">
+          <input type="text" id="txtQrUrl" class="form-control" readonly style="font-size: 0.8rem; text-overflow: ellipsis; background: #f8fafc;" />
+          <button type="button" class="btn btn-secondary btn-sm" id="btnCopyQrUrl" title="Copy URL">
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: center;">
+        <button type="button" class="btn btn-primary" id="btnDoneQr">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       PRINT CONTAINER (BATCH PRINT ALL SELECTED)
+       ========================================== -->
+  <div id="batchPrintContainer" class="batch-print-container"></div>
+
+  <!-- ==========================================
+       TOAST NOTIFICATION CONTAINER
+       ========================================== -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
