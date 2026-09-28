@@ -157,10 +157,32 @@ Class Coordinator`;
     txtQrUrl: document.getElementById('txtQrUrl'),
     btnCopyQrUrl: document.getElementById('btnCopyQrUrl'),
 
-    // Navigation
+    // Navigation (Desktop & Mobile)
     navTabs: document.querySelectorAll('.nav-tab'),
     tabContents: document.querySelectorAll('.tab-content'),
     navNoticeCount: document.getElementById('navNoticeCount'),
+    mobileBottomNav: document.getElementById('mobileBottomNav'),
+    btnMobileMenuToggle: document.getElementById('btnMobileMenuToggle'),
+    btnMobileQrCode: document.getElementById('btnMobileQrCode'),
+    sheetMobileMenu: document.getElementById('sheetMobileMenu'),
+    btnCloseMobileSheet: document.getElementById('btnCloseMobileSheet'),
+    fabAddStudent: document.getElementById('fabAddStudent'),
+    mobileNoticeBadge: document.getElementById('mobileNoticeBadge'),
+    btnMobileMoreMenu: document.getElementById('btnMobileMoreMenu'),
+    mobileInstallBanner: document.getElementById('mobileInstallBanner'),
+    btnInstallAppPrompt: document.getElementById('btnInstallAppPrompt'),
+    btnCloseInstallBanner: document.getElementById('btnCloseInstallBanner'),
+
+    // Mobile Sheet Actions
+    mItemAddStudent: document.getElementById('mItemAddStudent'),
+    mItemExcelImport: document.getElementById('mItemExcelImport'),
+    mItemExportBackup: document.getElementById('mItemExportBackup'),
+    mItemImportBackup: document.getElementById('mItemImportBackup'),
+    mItemLoadDemo: document.getElementById('mItemLoadDemo'),
+    mItemShowQr: document.getElementById('mItemShowQr'),
+    mItemChangePassword: document.getElementById('mItemChangePassword'),
+    mItemClearAll: document.getElementById('mItemClearAll'),
+    mItemLogout: document.getElementById('mItemLogout'),
 
     // KPI Cards
     kpiTotalStudents: document.getElementById('kpiTotalStudents'),
@@ -602,6 +624,7 @@ Class Coordinator`;
       dom.kpiBelow75.textContent = '0';
       dom.badgeBelow75Count.textContent = '0';
       dom.navNoticeCount.classList.add('hidden');
+      if (dom.mobileNoticeBadge) dom.mobileNoticeBadge.classList.add('hidden');
       return;
     }
 
@@ -633,8 +656,13 @@ Class Coordinator`;
     if (belowCount > 0) {
       dom.navNoticeCount.textContent = belowCount;
       dom.navNoticeCount.classList.remove('hidden');
+      if (dom.mobileNoticeBadge) {
+        dom.mobileNoticeBadge.textContent = belowCount;
+        dom.mobileNoticeBadge.classList.remove('hidden');
+      }
     } else {
       dom.navNoticeCount.classList.add('hidden');
+      if (dom.mobileNoticeBadge) dom.mobileNoticeBadge.classList.add('hidden');
     }
   }
 
@@ -1534,6 +1562,16 @@ Class Coordinator`;
       }
     });
 
+    // Sync mobile bottom navigation bar
+    const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn[data-tab]');
+    mobileNavBtns.forEach(btn => {
+      if (btn.dataset.tab === targetTab) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
     dom.tabContents.forEach(content => {
       if (content.id === `tab${targetTab.charAt(0).toUpperCase() + targetTab.slice(1)}`) {
         content.classList.add('active');
@@ -1550,6 +1588,9 @@ Class Coordinator`;
     } else {
       renderOverviewTable();
     }
+
+    // Smooth scroll to top on mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // =========================================================================
@@ -2161,6 +2202,105 @@ Class Coordinator`;
     // Demo Data
     dom.btnLoadDemoData.addEventListener('click', loadDemoData);
     dom.btnEmptyLoadDemo.addEventListener('click', loadDemoData);
+
+    // Mobile Bottom Navigation Bar
+    const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn[data-tab]');
+    mobileNavBtns.forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // Mobile Bottom Sheet Menu (Drawer)
+    function openMobileSheet() {
+      if (dom.sheetMobileMenu) dom.sheetMobileMenu.classList.remove('hidden');
+    }
+    function closeMobileSheet() {
+      if (dom.sheetMobileMenu) dom.sheetMobileMenu.classList.add('hidden');
+    }
+
+    if (dom.btnMobileMenuToggle) dom.btnMobileMenuToggle.addEventListener('click', openMobileSheet);
+    if (dom.btnMobileMoreMenu) dom.btnMobileMoreMenu.addEventListener('click', openMobileSheet);
+    if (dom.btnCloseMobileSheet) dom.btnCloseMobileSheet.addEventListener('click', closeMobileSheet);
+    if (dom.sheetMobileMenu) {
+      dom.sheetMobileMenu.addEventListener('click', (e) => {
+        if (e.target === dom.sheetMobileMenu) closeMobileSheet();
+      });
+    }
+
+    // Mobile Sheet Actions
+    if (dom.mItemAddStudent) {
+      dom.mItemAddStudent.addEventListener('click', () => { closeMobileSheet(); openAddStudentModal(); });
+    }
+    if (dom.mItemExcelImport) {
+      dom.mItemExcelImport.addEventListener('click', () => { closeMobileSheet(); openExcelModal(); });
+    }
+    if (dom.mItemExportBackup) {
+      dom.mItemExportBackup.addEventListener('click', () => { closeMobileSheet(); exportBackupJSON(); });
+    }
+    if (dom.mItemImportBackup) {
+      dom.mItemImportBackup.addEventListener('click', () => { closeMobileSheet(); dom.fileImportBackup.click(); });
+    }
+    if (dom.mItemLoadDemo) {
+      dom.mItemLoadDemo.addEventListener('click', () => { closeMobileSheet(); loadDemoData(); });
+    }
+    if (dom.mItemShowQr) {
+      dom.mItemShowQr.addEventListener('click', () => { closeMobileSheet(); openQrModal(); });
+    }
+    if (dom.btnMobileQrCode) {
+      dom.btnMobileQrCode.addEventListener('click', openQrModal);
+    }
+    if (dom.mItemChangePassword) {
+      dom.mItemChangePassword.addEventListener('click', () => { closeMobileSheet(); openAdminCredsModal(false); });
+    }
+    if (dom.mItemClearAll) {
+      dom.mItemClearAll.addEventListener('click', () => { closeMobileSheet(); openClearAllModal(); });
+    }
+    if (dom.mItemLogout) {
+      dom.mItemLogout.addEventListener('click', () => { closeMobileSheet(); handleAdminLogout(); });
+    }
+
+    // Mobile Floating Action Button (FAB)
+    if (dom.fabAddStudent) {
+      dom.fabAddStudent.addEventListener('click', openAddStudentModal);
+    }
+
+    // Mobile PWA App Install Banner & Prompt
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (dom.mobileInstallBanner && !sessionStorage.getItem('dismissedInstallBanner')) {
+        dom.mobileInstallBanner.classList.remove('hidden');
+      }
+    });
+
+    if (dom.btnInstallAppPrompt) {
+      dom.btnInstallAppPrompt.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          deferredPrompt = null;
+          if (dom.mobileInstallBanner) dom.mobileInstallBanner.classList.add('hidden');
+        } else {
+          alert('To install AttendEase on your phone:\n\n• On Android (Chrome/Edge): Tap Menu (⋮) > "Install App" or "Add to Home screen"\n• On iPhone (Safari): Tap Share (⎋) > "Add to Home Screen"');
+        }
+      });
+    }
+
+    if (dom.btnCloseInstallBanner) {
+      dom.btnCloseInstallBanner.addEventListener('click', () => {
+        if (dom.mobileInstallBanner) dom.mobileInstallBanner.classList.add('hidden');
+        sessionStorage.setItem('dismissedInstallBanner', 'true');
+      });
+    }
+
+    // Service Worker for Offline PWA Capabilities
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.warn('ServiceWorker registration error:', err);
+        });
+      });
+    }
   }
 
   // =========================================================================
@@ -2549,8 +2689,8 @@ Class Coordinator`;
   // =========================================================================
   function openQrModal() {
     let url = window.location.href;
-    if (url.startsWith('file://')) {
-      url = 'http://localhost:8000/index.html';
+    if (url.startsWith('file://') || url.includes('localhost') || url.includes('127.0.0.1')) {
+      url = 'https://attendm.netlify.app';
     }
 
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(url)}`;

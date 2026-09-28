@@ -2176,3 +2176,639 @@ body {
   color: var(--text-muted);
   line-height: 1.4;
 }
+
+/* ==========================================================================
+   MOBILE & PWA APP-SPECIFIC STYLES
+   Desktop remains standard full web layout; Mobile transforms into native App UI
+   ========================================================================== */
+
+/* By default on Desktop (Screens > 768px): Hide mobile-only elements */
+@media (min-width: 769px) {
+  .mobile-header-actions,
+  .mobile-install-banner,
+  .mobile-fab,
+  .mobile-bottom-nav,
+  .mobile-sheet-backdrop {
+    display: none !important;
+  }
+}
+
+/* On Mobile Phones (<= 768px) and Standalone Installed PWA Apps */
+@media (max-width: 768px), (display-mode: standalone) {
+  /* Prevent horizontal scroll bounce */
+  html, body {
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Compact Mobile App Header */
+  .app-header {
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .header-inner {
+    padding: 0.65rem 1rem;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .brand-group {
+    gap: 0.55rem;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+
+  .brand-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .brand-title {
+    font-size: 1.12rem;
+  }
+
+  .brand-subtitle {
+    display: none; /* Keep clean in mobile bar */
+  }
+
+  /* Hide Desktop Nav Tabs & Desktop Header Buttons */
+  .app-header .nav-tabs {
+    display: none !important;
+  }
+
+  .header-actions {
+    display: none !important;
+  }
+
+  /* Show Mobile Header Buttons */
+  .mobile-header-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .btn-icon-mobile {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    border: 1px solid var(--bg-border);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-icon-mobile:active {
+    background: #f1f5f9;
+    transform: scale(0.94);
+  }
+
+  /* Mobile App Install Banner */
+  .mobile-install-banner {
+    background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
+    border-bottom: 1px solid #c7d2fe;
+    padding: 0.6rem 1rem;
+    animation: fadeIn 0.25s ease-in;
+  }
+
+  .install-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 100%;
+  }
+
+  .install-banner-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .install-banner-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .install-banner-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #1e1b4b;
+    line-height: 1.2;
+  }
+
+  .install-banner-desc {
+    font-size: 0.72rem;
+    color: #4338ca;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .install-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .btn-close-banner {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  /* Native Mobile Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(62px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 999;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .mobile-nav-btn {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.1s ease;
+    padding: 0;
+    user-select: none;
+  }
+
+  .mobile-nav-btn:active {
+    transform: scale(0.93);
+  }
+
+  .mobile-nav-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+  }
+
+  .mobile-nav-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .mobile-nav-btn.active {
+    color: var(--primary);
+  }
+
+  .mobile-nav-btn.active .mobile-nav-icon-wrap {
+    background: #eef2ff;
+    color: var(--primary);
+  }
+
+  .mobile-badge-pill {
+    position: absolute;
+    top: -3px;
+    right: -6px;
+    background: var(--danger-red);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 999px;
+    line-height: 1.2;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+  }
+
+  /* Floating Action Button (FAB) */
+  .mobile-fab {
+    position: fixed;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff;
+    border: none;
+    display: flex !important;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.86rem;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+    z-index: 990;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mobile-fab:active {
+    transform: scale(0.94);
+  }
+
+  /* Mobile Action Sheet / Drawer (Bottom Sheet) */
+  .mobile-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    display: flex !important;
+    align-items: flex-end;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-sheet-backdrop.hidden {
+    display: none !important;
+  }
+
+  .mobile-sheet {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 22px 22px 0 0;
+    padding: 14px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.2);
+    animation: mobileSheetUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes mobileSheetUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .mobile-sheet-drag-handle {
+    width: 44px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 999px;
+    margin: 0 auto 12px;
+  }
+
+  .mobile-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .mobile-sheet-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .btn-close-sheet {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    font-size: 1.3rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .mobile-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px 8px;
+    margin-bottom: 1rem;
+  }
+
+  .mobile-sheet-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: 12px;
+    transition: background 0.12s ease;
+  }
+
+  .mobile-sheet-item:active {
+    background: #f1f5f9;
+    transform: scale(0.95);
+  }
+
+  .sheet-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  }
+
+  .sheet-item-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .mobile-sheet-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.85rem;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  /* Mobile Dashboard KPI Cards (2x2 Grid) */
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .summary-card {
+    padding: 0.85rem !important;
+  }
+
+  .summary-card-inner {
+    gap: 0.5rem;
+  }
+
+  .summary-icon-box {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .summary-icon-box svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .metric-number {
+    font-size: 1.5rem !important;
+  }
+
+  .metric-label {
+    font-size: 0.72rem !important;
+  }
+
+  /* Mobile Controls Bar */
+  .controls-bar {
+    padding: 0.85rem !important;
+    gap: 0.75rem !important;
+  }
+
+  .controls-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .controls-actions .btn {
+    flex: 1 1 calc(50% - 0.5rem);
+    justify-content: center;
+  }
+
+  /* =========================================================================
+     TABLES TO MOBILE CARDS TRANSFORMATION
+     ========================================================================= */
+  .table-responsive {
+    overflow-x: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  .data-table thead {
+    display: none !important; /* Hide wide header on phones */
+  }
+
+  .data-table,
+  .data-table tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Student Card in Dashboard */
+  #tbodyStudents tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+    border: 1px solid var(--bg-border) !important;
+    border-radius: 14px !important;
+    margin-bottom: 0.85rem !important;
+    padding: 0.95rem 1rem !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+    position: relative !important;
+    gap: 0.55rem !important;
+  }
+
+  #tbodyStudents tr.row-danger {
+    border-left: 5px solid var(--danger-red) !important;
+    background: #ffffff !important;
+  }
+
+  #tbodyStudents tr td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    text-align: left !important;
+  }
+
+  /* Card Checkbox & Name Header */
+  #tbodyStudents tr td:nth-child(1) {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+  }
+
+  #tbodyStudents tr td:nth-child(2) {
+    display: inline-flex !important;
+    margin-bottom: -2px;
+  }
+
+  #tbodyStudents tr td:nth-child(3) strong {
+    font-size: 1.05rem;
+    color: #0f172a;
+    display: block;
+    padding-right: 32px;
+  }
+
+  /* Attendance Progress on Card */
+  #tbodyStudents tr td:nth-child(6) .attendance-cell {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  #tbodyStudents tr td:nth-child(6) .attendance-progress-track {
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  /* Action Buttons Group on Card */
+  #tbodyStudents tr td:nth-child(8) .row-actions-group {
+    display: flex !important;
+    gap: 0.5rem !important;
+    margin-top: 0.4rem !important;
+    padding-top: 0.6rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+  }
+
+  #tbodyStudents tr td:nth-child(8) .btn-table-action {
+    flex: 1;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #tbodyStudents tr td:nth-child(8) .btn-action-whatsapp {
+    background: #25d366 !important;
+    color: #ffffff !important;
+    flex: 1.5;
+  }
+
+  /* Attendance Register Cards on Mobile */
+  #tbodyRegister tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+    border: 1px solid var(--bg-border) !important;
+    border-radius: 14px !important;
+    margin-bottom: 0.85rem !important;
+    padding: 1rem !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+    gap: 0.65rem !important;
+  }
+
+  #tbodyRegister tr.row-danger {
+    border-left: 5px solid var(--danger-red) !important;
+  }
+
+  #tbodyRegister tr td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    text-align: left !important;
+  }
+
+  #tbodyRegister tr td:nth-child(2) strong {
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+
+  /* Large thumb-friendly touch steppers for Register */
+  #tbodyRegister .stepper-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 0.35rem;
+    background: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  #tbodyRegister .btn-stepper {
+    width: 46px !important;
+    height: 46px !important;
+    font-size: 1.4rem !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: var(--primary) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  #tbodyRegister .btn-stepper:active {
+    background: #eef2ff !important;
+    transform: scale(0.92);
+  }
+
+  #tbodyRegister .stepper-input {
+    width: 70px !important;
+    height: 46px !important;
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+  }
+
+  /* Notice Generator Mobile Layout */
+  .notice-generator-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .preview-actions-bar {
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+  }
+
+  .preview-actions-bar .btn {
+    width: 100% !important;
+    height: 48px !important;
+    font-size: 0.95rem !important;
+    justify-content: center !important;
+  }
+
+  /* Modal Bottom Sheets on Mobile */
+  .modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: auto 0 0 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh !important;
+  }
+}
+
