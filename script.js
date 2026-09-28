@@ -183,6 +183,13 @@ Class Coordinator`;
     mItemChangePassword: document.getElementById('mItemChangePassword'),
     mItemClearAll: document.getElementById('mItemClearAll'),
     mItemLogout: document.getElementById('mItemLogout'),
+    mItemDownloadApp: document.getElementById('mItemDownloadApp'),
+
+    // Download Standalone Offline App Controls
+    btnLoginDownloadApp: document.getElementById('btnLoginDownloadApp'),
+    btnDownloadOfflineApp: document.getElementById('btnDownloadOfflineApp'),
+    btnMobileDownload: document.getElementById('btnMobileDownload'),
+    btnModalDownloadApp: document.getElementById('btnModalDownloadApp'),
 
     // KPI Cards
     kpiTotalStudents: document.getElementById('kpiTotalStudents'),
@@ -2301,6 +2308,80 @@ Class Coordinator`;
         });
       });
     }
+
+    // Download Standalone Offline App Event Listeners
+    if (dom.btnLoginDownloadApp) dom.btnLoginDownloadApp.addEventListener('click', downloadOfflineWebPage);
+    if (dom.btnDownloadOfflineApp) dom.btnDownloadOfflineApp.addEventListener('click', downloadOfflineWebPage);
+    if (dom.btnMobileDownload) dom.btnMobileDownload.addEventListener('click', downloadOfflineWebPage);
+    if (dom.mItemDownloadApp) {
+      dom.mItemDownloadApp.addEventListener('click', () => {
+        closeMobileSheet();
+        downloadOfflineWebPage();
+      });
+    }
+    if (dom.btnModalDownloadApp) dom.btnModalDownloadApp.addEventListener('click', downloadOfflineWebPage);
+  }
+
+  // =========================================================================
+  // DOWNLOAD OFFLINE WEBPAGE CONTROLLER
+  // =========================================================================
+  function downloadOfflineWebPage() {
+    showToast('Preparing offline webpage download...', 'info');
+
+    // Strategy 1: Fetch pre-bundled standalone HTML from server
+    fetch('./attendease_standalone.html')
+      .then(res => {
+        if (!res.ok) throw new Error('Standalone bundle not reachable');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'AttendEase_App.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        showToast('AttendEase offline app downloaded successfully!', 'success');
+      })
+      .catch(async () => {
+        // Strategy 2 (Fallback): Generate dynamically from current page
+        try {
+          const resCss = await fetch('./style.css').catch(() => null);
+          const cssText = resCss && resCss.ok ? await resCss.text() : '';
+          const resJs = await fetch('./script.js').catch(() => null);
+          const jsText = resJs && resJs.ok ? await resJs.text() : '';
+
+          let docHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+          if (cssText) {
+            docHtml = docHtml.replace('<link rel="stylesheet" href="style.css">', `<style>\n${cssText}\n</style>`);
+          }
+          if (jsText) {
+            docHtml = docHtml.replace('<script src="script.js"></script>', `<script>\n${jsText}\n</script>`);
+          }
+
+          const blob = new Blob([docHtml], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'AttendEase_App.html';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 3000);
+          showToast('AttendEase offline app downloaded successfully!', 'success');
+        } catch (err) {
+          // Strategy 3: Direct link trigger
+          const a = document.createElement('a');
+          a.href = './attendease_standalone.html';
+          a.download = 'AttendEase_App.html';
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+      });
   }
 
   // =========================================================================
