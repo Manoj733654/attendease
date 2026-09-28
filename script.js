@@ -15,7 +15,8 @@
     COLLEGE_NAME: 'attendease_college_v1',
     SIGNATORY: 'attendease_signatory_v1',
     ADMIN_AUTH: 'attendease_admin_auth',
-    ADMIN_CREDS: 'attendease_admin_creds'
+    ADMIN_CREDS: 'attendease_admin_creds',
+    NOTICE_ATTACHMENT: 'attendease_notice_attachment_v1'
   };
 
   const DEFAULT_ADMIN_CREDENTIALS = {
@@ -110,7 +111,8 @@ Class Coordinator`;
     activeNoticeStudentId: null,
     deleteCandidateId: null,
     parsedExcelStudents: [], // Staged student records from Excel/CSV before commit
-    isAdminLoggedIn: false
+    isAdminLoggedIn: false,
+    noticeAttachment: null // { name, type, size, dataUrl }
   };
 
   // =========================================================================
@@ -207,6 +209,11 @@ Class Coordinator`;
     // Notice Generator Tab
     selectNoticeStudent: document.getElementById('selectNoticeStudent'),
     btnNoticePickBelow75: document.getElementById('btnNoticePickBelow75'),
+    chkStudentCustomNotice: document.getElementById('chkStudentCustomNotice'),
+    badgeCustomNoticeActive: document.getElementById('badgeCustomNoticeActive'),
+    lblNoticeTemplateTitle: document.getElementById('lblNoticeTemplateTitle'),
+    btnUploadNoticeFile: document.getElementById('btnUploadNoticeFile'),
+    fileNoticeInput: document.getElementById('fileNoticeInput'),
     txtNoticeTemplate: document.getElementById('txtNoticeTemplate'),
     btnSaveTemplate: document.getElementById('btnSaveTemplate'),
     btnResetTemplate: document.getElementById('btnResetTemplate'),
@@ -214,6 +221,16 @@ Class Coordinator`;
     placeholderChips: document.querySelectorAll('.chip-tag'),
     txtCollegeName: document.getElementById('txtCollegeName'),
     txtSignatory: document.getElementById('txtSignatory'),
+
+    // Official Notice / Circular Upload
+    fileNoticeAttachment: document.getElementById('fileNoticeAttachment'),
+    btnTriggerNoticeUpload: document.getElementById('btnTriggerNoticeUpload'),
+    noticeUploadEmptyState: document.getElementById('noticeUploadEmptyState'),
+    noticeUploadLoadedState: document.getElementById('noticeUploadLoadedState'),
+    lblNoticeFileName: document.getElementById('lblNoticeFileName'),
+    lblNoticeFileSize: document.getElementById('lblNoticeFileSize'),
+    btnViewUploadedNotice: document.getElementById('btnViewUploadedNotice'),
+    btnRemoveUploadedNotice: document.getElementById('btnRemoveUploadedNotice'),
 
     // Notice Preview Letterhead
     previewPager: document.getElementById('previewPager'),
@@ -233,6 +250,11 @@ Class Coordinator`;
     prevPercentageBadge: document.getElementById('prevPercentageBadge'),
     prevStatusTag: document.getElementById('prevStatusTag'),
     prevMessageContent: document.getElementById('prevMessageContent'),
+    prevNoticeAttachmentBox: document.getElementById('prevNoticeAttachmentBox'),
+    prevNoticeImgWrap: document.getElementById('prevNoticeImgWrap'),
+    prevNoticeImg: document.getElementById('prevNoticeImg'),
+    prevNoticeDocWrap: document.getElementById('prevNoticeDocWrap'),
+    prevNoticeDocName: document.getElementById('prevNoticeDocName'),
     prevSignatoryTitle: document.getElementById('prevSignatoryTitle'),
     prevSignatoryDept: document.getElementById('prevSignatoryDept'),
     btnPrintNotice: document.getElementById('btnPrintNotice'),
@@ -417,9 +439,31 @@ Class Coordinator`;
         if (storedSignatory) {
           state.signatoryTitle = storedSignatory;
         }
+
+        const storedAttachment = localStorage.getItem(STORAGE_KEYS.NOTICE_ATTACHMENT);
+        if (storedAttachment) {
+          try {
+            state.noticeAttachment = JSON.parse(storedAttachment);
+          } catch (e) {
+            state.noticeAttachment = null;
+          }
+        }
       } catch (err) {
         console.error('Error loading data from localStorage:', err);
         state.students = [];
+      }
+    },
+
+    saveNoticeAttachment(attachment) {
+      try {
+        state.noticeAttachment = attachment;
+        if (attachment) {
+          localStorage.setItem(STORAGE_KEYS.NOTICE_ATTACHMENT, JSON.stringify(attachment));
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.NOTICE_ATTACHMENT);
+        }
+      } catch (err) {
+        console.error('Failed to save notice attachment to localStorage:', err);
       }
     },
 
@@ -938,6 +982,32 @@ Class Coordinator`;
     });
     dom.prevNoticeDate.textContent = dateFormatted;
 
+    // Render attached official notice (if uploaded)
+    if (state.noticeAttachment && state.noticeAttachment.dataUrl) {
+      if (dom.noticeUploadLoadedState) dom.noticeUploadLoadedState.classList.remove('hidden');
+      if (dom.noticeUploadEmptyState) dom.noticeUploadEmptyState.classList.add('hidden');
+      if (dom.lblNoticeFileName) dom.lblNoticeFileName.textContent = state.noticeAttachment.name;
+      if (dom.lblNoticeFileSize) dom.lblNoticeFileSize.textContent = `${state.noticeAttachment.size} • Attached to notice`;
+
+      if (dom.prevNoticeAttachmentBox) {
+        dom.prevNoticeAttachmentBox.classList.remove('hidden');
+        const isImg = state.noticeAttachment.type.startsWith('image/');
+        if (isImg) {
+          if (dom.prevNoticeImgWrap) dom.prevNoticeImgWrap.classList.remove('hidden');
+          if (dom.prevNoticeImg) dom.prevNoticeImg.src = state.noticeAttachment.dataUrl;
+          if (dom.prevNoticeDocWrap) dom.prevNoticeDocWrap.classList.add('hidden');
+        } else {
+          if (dom.prevNoticeImgWrap) dom.prevNoticeImgWrap.classList.add('hidden');
+          if (dom.prevNoticeDocWrap) dom.prevNoticeDocWrap.classList.remove('hidden');
+          if (dom.prevNoticeDocName) dom.prevNoticeDocName.textContent = state.noticeAttachment.name;
+        }
+      }
+    } else {
+      if (dom.noticeUploadLoadedState) dom.noticeUploadLoadedState.classList.add('hidden');
+      if (dom.noticeUploadEmptyState) dom.noticeUploadEmptyState.classList.remove('hidden');
+      if (dom.prevNoticeAttachmentBox) dom.prevNoticeAttachmentBox.classList.add('hidden');
+    }
+
     if (!student) {
       dom.prevStudentName.textContent = 'Select a student';
       dom.prevRollNo.textContent = '—';
@@ -955,6 +1025,9 @@ Class Coordinator`;
       dom.previewPager.classList.add('hidden');
       if (dom.lblSendWhatsAppText) dom.lblSendWhatsAppText.textContent = 'Send to Parent WhatsApp';
       if (dom.btnSendStudentWhatsApp) dom.btnSendStudentWhatsApp.classList.add('hidden');
+      if (dom.chkStudentCustomNotice) dom.chkStudentCustomNotice.checked = false;
+      if (dom.badgeCustomNoticeActive) dom.badgeCustomNoticeActive.classList.add('hidden');
+      if (dom.lblNoticeTemplateTitle) dom.lblNoticeTemplateTitle.textContent = 'Notice Message Template';
       return;
     }
 
@@ -977,8 +1050,33 @@ Class Coordinator`;
 
     dom.prevRefNo.textContent = `ATTN-${today.getFullYear()}/${student.rollNumber.padStart(3, '0')}`;
 
-    // Render personalized template
-    const renderedMsg = renderNoticeMessage(state.customTemplate, student);
+    // Handle student-specific custom notice vs default template
+    const hasCustomNotice = Boolean(student.customNotice && student.customNotice.trim());
+    if (dom.chkStudentCustomNotice) {
+      dom.chkStudentCustomNotice.checked = hasCustomNotice;
+    }
+    if (dom.badgeCustomNoticeActive) {
+      if (hasCustomNotice) {
+        dom.badgeCustomNoticeActive.classList.remove('hidden');
+        dom.badgeCustomNoticeActive.textContent = `Customized for ${student.studentName}`;
+      } else {
+        dom.badgeCustomNoticeActive.classList.add('hidden');
+      }
+    }
+    if (dom.lblNoticeTemplateTitle) {
+      dom.lblNoticeTemplateTitle.textContent = hasCustomNotice
+        ? `Custom Notice for ${student.studentName}`
+        : 'Notice Message Template';
+    }
+
+    // Only update textarea if user is not actively editing it
+    const activeNoticeContent = hasCustomNotice ? student.customNotice : state.customTemplate;
+    if (document.activeElement !== dom.txtNoticeTemplate) {
+      dom.txtNoticeTemplate.value = activeNoticeContent;
+    }
+
+    // Render personalized message
+    const renderedMsg = renderNoticeMessage(activeNoticeContent, student);
     dom.prevMessageContent.textContent = renderedMsg;
 
     // Update WhatsApp action buttons with target details
@@ -1059,7 +1157,13 @@ Class Coordinator`;
       return;
     }
 
-    const message = renderNoticeMessage(state.customTemplate, student);
+    const activeNoticeContent = (student.customNotice && student.customNotice.trim())
+      ? student.customNotice
+      : state.customTemplate;
+    let message = renderNoticeMessage(activeNoticeContent, student);
+    if (state.noticeAttachment && state.noticeAttachment.name) {
+      message += `\n\n📌 Attached Circular: ${state.noticeAttachment.name}`;
+    }
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 
@@ -1102,8 +1206,33 @@ Class Coordinator`;
     selectedList.forEach(student => {
       const pct = calculateAttendance(student.attendedClasses, student.totalClasses);
       const isShortage = isBelow75(pct);
-      const renderedMsg = renderNoticeMessage(state.customTemplate, student);
+      const activeNoticeContent = (student.customNotice && student.customNotice.trim())
+        ? student.customNotice
+        : state.customTemplate;
+      const renderedMsg = renderNoticeMessage(activeNoticeContent, student);
       const refNo = `ATTN-${today.getFullYear()}/${student.rollNumber.padStart(3, '0')}`;
+
+      let attachmentHtml = '';
+      if (state.noticeAttachment && state.noticeAttachment.dataUrl) {
+        if (state.noticeAttachment.type && state.noticeAttachment.type.startsWith('image/')) {
+          attachmentHtml = `
+            <div class="notice-attachment-preview-box" style="margin-top: 14px; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; background: #fafafa;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Official Circular Attachment (${escapeHtml(state.noticeAttachment.name)})</div>
+              <img src="${state.noticeAttachment.dataUrl}" alt="Official Notice" style="max-height: 200px; max-width: 100%; object-fit: contain; border-radius: 4px;" />
+            </div>
+          `;
+        } else {
+          attachmentHtml = `
+            <div class="notice-attachment-preview-box" style="margin-top: 14px; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 8px 12px; background: #fafafa; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.1rem;">📄</span>
+              <div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #475569;">OFFICIAL ATTACHMENT</div>
+                <div style="font-size: 0.82rem; font-weight: 600; color: #1e293b;">${escapeHtml(state.noticeAttachment.name)}</div>
+              </div>
+            </div>
+          `;
+        }
+      }
 
       batchHtml += `
         <div class="notice-letterhead">
@@ -1160,6 +1289,7 @@ Class Coordinator`;
             </table>
           </div>
           <div class="notice-message-body">${escapeHtml(renderedMsg)}</div>
+          ${attachmentHtml}
           <div class="notice-signoff-block">
             <div class="signature-line"></div>
             <div class="signatory-name">${escapeHtml(state.signatoryTitle)}</div>
@@ -1190,7 +1320,13 @@ Class Coordinator`;
       return;
     }
 
-    const message = renderNoticeMessage(state.customTemplate, student);
+    const activeNoticeContent = (student.customNotice && student.customNotice.trim())
+      ? student.customNotice
+      : state.customTemplate;
+    let message = renderNoticeMessage(activeNoticeContent, student);
+    if (state.noticeAttachment && state.noticeAttachment.name) {
+      message += `\n\n📌 Attached Circular: ${state.noticeAttachment.name}`;
+    }
     navigator.clipboard.writeText(message).then(() => {
       showToast('Notice message copied to clipboard!', 'success');
     }).catch(() => {
@@ -1611,31 +1747,215 @@ Class Coordinator`;
       });
     });
 
+    // Live update notice preview while typing in template editor
+    if (dom.txtNoticeTemplate) {
+      dom.txtNoticeTemplate.addEventListener('input', () => {
+        const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+        const isCustom = dom.chkStudentCustomNotice && dom.chkStudentCustomNotice.checked;
+        if (isCustom && student) {
+          student.customNotice = dom.txtNoticeTemplate.value;
+        }
+        if (student) {
+          dom.prevMessageContent.textContent = renderNoticeMessage(dom.txtNoticeTemplate.value, student);
+        }
+      });
+    }
+
+    // Toggle Customized Notice for currently active student
+    if (dom.chkStudentCustomNotice) {
+      dom.chkStudentCustomNotice.addEventListener('change', (e) => {
+        const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+        if (!student) {
+          dom.chkStudentCustomNotice.checked = false;
+          showToast('Please select a student from the dropdown first.', 'warning');
+          return;
+        }
+
+        if (e.target.checked) {
+          if (!student.customNotice || !student.customNotice.trim()) {
+            student.customNotice = dom.txtNoticeTemplate.value.trim() || state.customTemplate;
+          }
+          Storage.saveStudents();
+          renderNoticePreview();
+          showToast(`Custom notice mode active for ${student.studentName}. Edits will only apply to this student.`, 'info');
+        } else {
+          if (confirm(`Remove custom notice for ${student.studentName} and revert to standard template?`)) {
+            delete student.customNotice;
+            Storage.saveStudents();
+            renderNoticePreview();
+            showToast(`Reverted ${student.studentName} to standard notice template.`, 'info');
+          } else {
+            dom.chkStudentCustomNotice.checked = true;
+          }
+        }
+      });
+    }
+
+    // Upload draft/template file directly into editor
+    if (dom.btnUploadNoticeFile && dom.fileNoticeInput) {
+      dom.btnUploadNoticeFile.addEventListener('click', () => {
+        dom.fileNoticeInput.click();
+      });
+
+      dom.fileNoticeInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (loadEvt) => {
+          const content = loadEvt.target.result;
+          if (typeof content === 'string') {
+            dom.txtNoticeTemplate.value = content;
+            const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+            const isCustom = dom.chkStudentCustomNotice && dom.chkStudentCustomNotice.checked;
+            if (isCustom && student) {
+              student.customNotice = content;
+              Storage.saveStudents();
+              showToast(`Custom notice loaded from "${file.name}" for ${student.studentName}!`, 'success');
+            } else {
+              state.customTemplate = content;
+              Storage.saveTemplate();
+              showToast(`Standard template loaded from "${file.name}"!`, 'success');
+            }
+            renderNoticePreview();
+          }
+        };
+        reader.onerror = () => {
+          showToast('Failed to read notice file.', 'error');
+        };
+        reader.readAsText(file);
+        dom.fileNoticeInput.value = '';
+      });
+    }
+
     // Template Save & Reset
     dom.btnSaveTemplate.addEventListener('click', () => {
-      state.customTemplate = dom.txtNoticeTemplate.value;
+      const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+      const isCustom = dom.chkStudentCustomNotice && dom.chkStudentCustomNotice.checked;
+
       state.collegeName = dom.txtCollegeName.value.trim() || 'Department of Computer Science & Engineering';
       state.signatoryTitle = dom.txtSignatory.value.trim() || 'Class Coordinator / HOD';
-      Storage.saveTemplate();
-      renderNoticePreview();
-      showToast('Notice template saved successfully.', 'success');
+
+      if (isCustom && student) {
+        student.customNotice = dom.txtNoticeTemplate.value;
+        Storage.saveStudents();
+        Storage.saveTemplate();
+        renderNoticePreview();
+        showToast(`Custom notice saved specifically for ${student.studentName}!`, 'success');
+      } else {
+        state.customTemplate = dom.txtNoticeTemplate.value;
+        Storage.saveTemplate();
+        renderNoticePreview();
+        showToast('Standard notice template saved successfully.', 'success');
+      }
     });
 
     dom.btnResetTemplate.addEventListener('click', () => {
-      dom.txtNoticeTemplate.value = DEFAULT_TEMPLATE;
-      state.customTemplate = DEFAULT_TEMPLATE;
-      Storage.saveTemplate();
-      renderNoticePreview();
-      showToast('Template reset to default.', 'info');
+      const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+      const isCustom = dom.chkStudentCustomNotice && dom.chkStudentCustomNotice.checked;
+
+      if (isCustom && student) {
+        delete student.customNotice;
+        Storage.saveStudents();
+        if (dom.chkStudentCustomNotice) dom.chkStudentCustomNotice.checked = false;
+        dom.txtNoticeTemplate.value = state.customTemplate;
+        renderNoticePreview();
+        showToast(`Custom notice removed for ${student.studentName}. Reverted to default template.`, 'info');
+      } else {
+        dom.txtNoticeTemplate.value = DEFAULT_TEMPLATE;
+        state.customTemplate = DEFAULT_TEMPLATE;
+        Storage.saveTemplate();
+        renderNoticePreview();
+        showToast('Template reset to default.', 'info');
+      }
     });
 
     dom.btnRegeneratePreview.addEventListener('click', () => {
-      state.customTemplate = dom.txtNoticeTemplate.value;
+      const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+      const isCustom = dom.chkStudentCustomNotice && dom.chkStudentCustomNotice.checked;
+      if (isCustom && student) {
+        student.customNotice = dom.txtNoticeTemplate.value;
+        Storage.saveStudents();
+      } else {
+        state.customTemplate = dom.txtNoticeTemplate.value;
+      }
       state.collegeName = dom.txtCollegeName.value.trim();
       state.signatoryTitle = dom.txtSignatory.value.trim();
       renderNoticePreview();
-      showToast('Notice preview updated.', 'success');
+      showToast('Notice preview refreshed.', 'success');
     });
+
+    // Official Notice / Circular File Attachment Upload
+    if (dom.btnTriggerNoticeUpload && dom.fileNoticeAttachment) {
+      dom.btnTriggerNoticeUpload.addEventListener('click', () => {
+        dom.fileNoticeAttachment.click();
+      });
+
+      dom.fileNoticeAttachment.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 8 * 1024 * 1024) {
+          showToast('Notice file too large (Max 8 MB).', 'error');
+          dom.fileNoticeAttachment.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = ev.target.result;
+          const formattedSize = file.size < 1024 * 1024
+            ? `${(file.size / 1024).toFixed(1)} KB`
+            : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+          const attachment = {
+            name: file.name,
+            type: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'),
+            size: formattedSize,
+            dataUrl: dataUrl
+          };
+
+          Storage.saveNoticeAttachment(attachment);
+          renderNoticePreview();
+          showToast(`Official circular "${file.name}" uploaded and attached!`, 'success');
+        };
+        reader.onerror = () => {
+          showToast('Error reading uploaded notice file.', 'error');
+        };
+        reader.readAsDataURL(file);
+        dom.fileNoticeAttachment.value = '';
+      });
+    }
+
+    if (dom.btnRemoveUploadedNotice) {
+      dom.btnRemoveUploadedNotice.addEventListener('click', () => {
+        if (confirm('Remove the attached official notice circular?')) {
+          Storage.saveNoticeAttachment(null);
+          if (dom.fileNoticeAttachment) dom.fileNoticeAttachment.value = '';
+          renderNoticePreview();
+          showToast('Official notice circular removed.', 'info');
+        }
+      });
+    }
+
+    if (dom.btnViewUploadedNotice) {
+      dom.btnViewUploadedNotice.addEventListener('click', () => {
+        if (!state.noticeAttachment || !state.noticeAttachment.dataUrl) {
+          showToast('No notice document attached.', 'warning');
+          return;
+        }
+        const win = window.open();
+        if (win) {
+          if (state.noticeAttachment.type && state.noticeAttachment.type.startsWith('image/')) {
+            win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(state.noticeAttachment.name)}</title></head><body style="margin:0; background:#0f172a; display:flex; justify-content:center; align-items:center; min-height:100vh;"><img src="${state.noticeAttachment.dataUrl}" style="max-width:96%; max-height:96vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5);" alt="Official Notice" /></body></html>`);
+          } else {
+            win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(state.noticeAttachment.name)}</title></head><body style="margin:0; height:100vh; overflow:hidden;"><iframe src="${state.noticeAttachment.dataUrl}" style="width:100%; height:100%; border:none;"></iframe></body></html>`);
+          }
+        } else {
+          showToast('Pop-up blocked. Please allow pop-ups to view notice.', 'warning');
+        }
+      });
+    }
 
     // Multiple selection Pager (Next/Prev)
     dom.btnPrevNotice.addEventListener('click', () => navigateNoticeSelection(-1));
@@ -1855,7 +2175,15 @@ Class Coordinator`;
     textarea.value = text.substring(0, start) + tag + text.substring(end);
     textarea.focus();
     textarea.selectionStart = textarea.selectionEnd = start + tag.length;
-    state.customTemplate = textarea.value;
+
+    const student = state.students.find(s => s.id === state.activeNoticeStudentId);
+    const isCustom = dom.chkStudentCustomNotice && dom.chkStudentCustomNotice.checked;
+    if (isCustom && student) {
+      student.customNotice = textarea.value;
+      Storage.saveStudents();
+    } else {
+      state.customTemplate = textarea.value;
+    }
     renderNoticePreview();
   }
 
@@ -1974,7 +2302,8 @@ Class Coordinator`;
       students: state.students,
       customTemplate: state.customTemplate,
       collegeName: state.collegeName,
-      signatoryTitle: state.signatoryTitle
+      signatoryTitle: state.signatoryTitle,
+      noticeAttachment: state.noticeAttachment
     };
 
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -2005,6 +2334,10 @@ Class Coordinator`;
         if (parsed.customTemplate) state.customTemplate = parsed.customTemplate;
         if (parsed.collegeName) state.collegeName = parsed.collegeName;
         if (parsed.signatoryTitle) state.signatoryTitle = parsed.signatoryTitle;
+        if (parsed.noticeAttachment !== undefined) {
+          state.noticeAttachment = parsed.noticeAttachment;
+          Storage.saveNoticeAttachment(parsed.noticeAttachment);
+        }
 
         state.selectedStudentIds.clear();
         state.activeNoticeStudentId = state.students.length > 0 ? state.students[0].id : null;

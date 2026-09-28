@@ -510,15 +510,32 @@
               </div>
             </div>
 
+            <!-- Per-Student Custom Notice Box -->
+            <div class="custom-notice-toggle-box" style="margin-top: 0.85rem; margin-bottom: 0.85rem; padding: 0.75rem 0.95rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <input type="checkbox" id="chkStudentCustomNotice" style="width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary);">
+                <label for="chkStudentCustomNotice" style="font-size: 0.85rem; font-weight: 600; color: #1e293b; cursor: pointer; margin: 0;">
+                  Write / Customize notice specifically for this student
+                </label>
+              </div>
+              <span id="badgeCustomNoticeActive" class="badge-status badge-info hidden" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">Customized for this student</span>
+            </div>
+
             <!-- Custom Notice Template Textarea -->
             <div class="form-group">
-              <div class="label-with-action">
-                <label class="form-label" for="txtNoticeTemplate">
-                  Notice Message Template <span class="required-star">*</span>
+              <div class="label-with-action" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.4rem;">
+                <label class="form-label" for="txtNoticeTemplate" style="margin: 0;">
+                  <span id="lblNoticeTemplateTitle">Notice Message Template</span> <span class="required-star">*</span>
                 </label>
-                <button type="button" class="btn-text" id="btnResetTemplate">Reset to Default</button>
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                  <button type="button" class="btn-text" id="btnUploadNoticeFile" title="Upload a custom notice text file (.txt)">
+                    📂 Upload Notice Text
+                  </button>
+                  <input type="file" id="fileNoticeInput" accept=".txt,.text,.doc,.docx" style="display: none;">
+                  <button type="button" class="btn-text" id="btnResetTemplate">Reset Default</button>
+                </div>
               </div>
-              <textarea id="txtNoticeTemplate" class="form-control template-textarea" rows="9" placeholder="Type your custom notice template here..."></textarea>
+              <textarea id="txtNoticeTemplate" class="form-control template-textarea" rows="8" placeholder="Type or upload your custom notice template here..."></textarea>
             </div>
 
             <div class="template-actions">
@@ -528,7 +545,7 @@
                   <polyline points="17 21 17 13 7 13 7 21"/>
                   <polyline points="7 3 7 8 15 8"/>
                 </svg>
-                <span>Save Template</span>
+                <span>Save Notice</span>
               </button>
               <button type="button" class="btn btn-primary btn-sm" id="btnRegeneratePreview">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -549,6 +566,52 @@
                 <div class="form-group">
                   <label class="form-label" for="txtSignatory">Signatory Title</label>
                   <input type="text" id="txtSignatory" class="form-control" value="Class Coordinator / HOD">
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Official Notice Document / Circular (Image / PDF) -->
+            <div class="notice-upload-box" style="margin-top: 1rem; padding: 0.95rem 1.1rem; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                <label class="form-label" style="margin: 0; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.4rem;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                  </svg>
+                  <span>Upload Official Notice / Circular (PDF / Image)</span>
+                </label>
+                <span class="optional-tag">Optional Attachment</span>
+              </div>
+              <p style="font-size: 0.76rem; color: #64748b; margin: 0 0 0.75rem 0; line-height: 1.4;">
+                Attach an official scanned circular, letterhead image, or rules document to embed in previews, prints, and messages.
+              </p>
+
+              <!-- Upload triggers & status -->
+              <div id="noticeUploadEmptyState">
+                <input type="file" id="fileNoticeAttachment" accept="image/*,.pdf,.txt" style="display: none;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnTriggerNoticeUpload" style="width: 100%; border: 1px solid #94a3b8; background: #ffffff; padding: 0.55rem;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <span>Click to Upload Official Notice / Circular</span>
+                </button>
+              </div>
+
+              <!-- Uploaded notice preview badge -->
+              <div id="noticeUploadLoadedState" class="hidden" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 0.65rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
+                  <div style="width: 32px; height: 32px; border-radius: 6px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;">
+                    📄
+                  </div>
+                  <div style="min-width: 0;">
+                    <div id="lblNoticeFileName" style="font-size: 0.82rem; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">notice.pdf</div>
+                    <div id="lblNoticeFileSize" style="font-size: 0.72rem; color: #64748b;">Ready &amp; attached to notice</div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
+                  <button type="button" class="btn btn-sm btn-outline" id="btnViewUploadedNotice" title="View / Open Notice" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">View</button>
+                  <button type="button" class="btn btn-sm btn-outline text-danger" id="btnRemoveUploadedNotice" title="Remove attached notice" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Remove</button>
                 </div>
               </div>
             </div>
@@ -634,6 +697,25 @@
               <!-- Rendered Personalized Message -->
               <div class="notice-message-body" id="prevMessageContent">
                 Select a student to generate and preview the personalized notice.
+              </div>
+
+              <!-- Attached Official Circular / Notice Display (Shown when uploaded) -->
+              <div class="notice-attachment-preview hidden" id="prevNoticeAttachmentBox" style="margin-top: 1.25rem; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #4338ca; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>📎 Attached Official Notice / Circular</span>
+                </div>
+                <!-- If image, show clean image preview -->
+                <div id="prevNoticeImgWrap" class="hidden" style="text-align: center; margin-top: 0.5rem;">
+                  <img id="prevNoticeImg" src="" alt="Attached Official Notice" style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1;" />
+                </div>
+                <!-- If document / PDF, show clean document card -->
+                <div id="prevNoticeDocWrap" class="hidden" style="display: flex; align-items: center; gap: 0.75rem; background: #ffffff; padding: 0.65rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 6px;">
+                  <span style="font-size: 1.5rem;">📄</span>
+                  <div>
+                    <strong id="prevNoticeDocName" style="font-size: 0.82rem; color: #1e293b;">circular.pdf</strong>
+                    <div style="font-size: 0.72rem; color: #64748b;">Official circular document attached to this notice</div>
+                  </div>
+                </div>
               </div>
 
               <!-- Official Sign-off -->
